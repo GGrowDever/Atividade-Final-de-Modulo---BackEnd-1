@@ -36,6 +36,8 @@ router.post('/', (req, res) => {
 router.get('/:userId', (req, res) => {
 	const { userId } = req.params;
 
+	const { page, perPage } = req.query;
+
 	const user = users.find((user) => user.id === userId);
 
 	if (!user) {
@@ -44,9 +46,25 @@ router.get('/:userId', (req, res) => {
 		});
 	}
 
+	const currentPage = parseInt(page) || 1;
+	const itemsPerPage = parseInt(perPage) || 10;
+
 	const userNotes = notes.filter((note) => note.userId === userId);
 
-	res.status(200).json(userNotes);
+	const totalNotes = userNotes.length;
+
+	const startIndex = (currentPage - 1) * itemsPerPage;
+	const endIndex = startIndex + itemsPerPage;
+
+	const paginatedNotes = userNotes.slice(startIndex, endIndex);
+
+	const totalPages = Math.ceil(totalNotes / itemsPerPage);
+
+	res.status(200).json({
+		userNotes: paginatedNotes,
+		totalPages,
+		currentPage,
+	});
 });
 
 router.put('/:noteId', (req, res) => {
